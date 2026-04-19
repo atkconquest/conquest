@@ -2,726 +2,727 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>hatranthuylan.com - Advanced Audio System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>eboyasia.net</title>
+    <meta name="description" content="Advanced Personal Bio System powered by Custom Canvas and WebGL Mathematics.">
     <style>
-        /* ==========================================================================
-           PHẦN 1: CORE STYLES & BIẾN TOÀN CỤC (CORE SYSTEM VARIABLES)
-           ========================================================================== */
+
         @font-face {
             font-family: 'HeartlessFont';
             src: url('fonts/Heartless.ttf') format('truetype');
-            font-weight: normal; font-style: normal;
+            font-display: swap;
         }
 
         :root {
-            --red: #ff0000;
-            --dark-red: #8b0000;
-            --platinum: #ffffff;
-            --glass-core: rgba(13, 13, 15, 0.45);
-            --border-line: rgba(255, 255, 255, 0.15);
-            --glow-red: 0 0 20px rgba(255, 0, 0, 0.6);
-            --text-muted: #888888;
-            --progress-bg: #222222;
+            --color-savage-red: #ff1a1a;
+            --color-blood-dark: #8b0000;
+            --color-void-black: #030303;
+            --glass-surface: rgba(12, 12, 15, 0.45);
+            --glass-highlight: rgba(30, 30, 35, 0.65);
+            --border-ghost: rgba(255, 255, 255, 0.06);
+            --border-crimson: rgba(255, 26, 26, 0.25);
+            --glow-savage: 0 0 25px rgba(255, 26, 26, 0.65);
+            --glow-subtle: 0 0 12px rgba(255, 255, 255, 0.1);
+            --text-primary: #f8f8f8;
+            --text-secondary: #8a8a8a;
+            --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            --ease-cinematic: cubic-bezier(0.8, 0, 0.2, 1);
+            --ease-snappy: cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
 
         body {
-            background-color: #000;
-            color: #eee;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            user-select: none; /* Tránh bôi đen text khi tua nhạc */
+            background-color: var(--color-void-black); color: var(--text-primary);
+            font-family: var(--font-stack); overflow: hidden;
+            height: 100vh; width: 100vw; -webkit-font-smoothing: antialiased;
+            perspective: 1200px; /* Essential for custom 3D Math Engine */
         }
 
-        /* ==========================================================================
-           PHẦN 2: CURSOR & BACKGROUND EFFECTS
-           ========================================================================== */
-        #cursor {
-            width: 8px; height: 8px; background: var(--red); border-radius: 50%;
+        #hardware-cursor {
+            width: 5px; height: 5px; background: #fff; border-radius: 50%;
             position: fixed; pointer-events: none; z-index: 10000;
-            box-shadow: 0 0 15px var(--red); transition: transform 0.1s;
+            box-shadow: 0 0 10px #fff, var(--glow-savage);
+            transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s;
         }
 
-        #bg-video {
-            position: fixed; inset: 0; width: 100%; height: 100%;
-            object-fit: cover; z-index: -2; filter: brightness(0.25) contrast(1.1);
+        #hardware-cursor-ring {
+            width: 35px; height: 35px; border: 1.5px solid var(--color-savage-red);
+            border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999;
+            transform: translate(-50%, -50%); transition: 0.1s ease-out;
+            box-shadow: inset 0 0 10px rgba(255,26,26,0.2);
         }
 
-        .scanline {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            z-index: -1; background-size: 100% 2px, 3px 100%; pointer-events: none;
+        #bg-video-matrix {
+            position: fixed; inset: 0; width: 100vw; height: 100vh;
+            object-fit: cover; z-index: -6; opacity: 0.15; filter: grayscale(1) contrast(1.5);
         }
 
-        /* ==========================================================================
-           PHẦN 3: GATE KEEPER (MÀN HÌNH CHỜ)
-           ========================================================================== */
-        .gate-keeper {
-            position: fixed; inset: 0; z-index: 9999;
-            background: radial-gradient(circle, #111 0%, #000 100%);
+        #particle-engine {
+            position: fixed; inset: 0; width: 100vw; height: 100vh;
+            z-index: -5; pointer-events: none;
+        }
+
+        .crt-overlay {
+            position: fixed; inset: 0; z-index: -4; pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+            background-size: 100% 4px;
+        }
+
+        .vignette-lens {
+            position: fixed; inset: 0; z-index: -3; pointer-events: none;
+            background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.95) 100%);
+        }
+
+        #gate-protocol {
+            position: fixed; inset: 0; z-index: 9999; background: #010101;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+            transition: transform 1.2s var(--ease-cinematic), opacity 1.2s ease;
+            will-change: transform, opacity;
         }
 
-        .gate-keeper h1 {
-            font-family: 'HeartlessFont', serif; font-size: clamp(80px, 15vw, 150px);
-            color: var(--red); text-shadow: 0 0 50px var(--red);
-            letter-spacing: 20px; animation: pulse 2s infinite alternate; cursor: pointer;
+        .gate-cipher {
+            font-family: 'HeartlessFont', serif; font-size: clamp(80px, 10vw, 130px);
+            color: var(--color-savage-red); text-shadow: var(--glow-savage);
+            letter-spacing: 1.5rem; text-transform: uppercase;
+            animation: core-pulse 3s infinite alternate; user-select: none;
         }
 
-        @keyframes pulse { 
-            from { transform: scale(1); opacity: 0.6; } 
-            to { transform: scale(1.05); opacity: 1; } 
+        .gate-subtext {
+            margin-top: 20px; font-family: monospace; font-size: 12px;
+            letter-spacing: 8px; color: var(--text-secondary);
+            text-transform: uppercase; animation: binary-blink 1.5s infinite;
         }
 
-        /* ==========================================================================
-           PHẦN 4: MAIN UI & CARD LAYOUT
-           ========================================================================== */
-        .supreme-wrapper {
-            display: flex; flex-direction: row; align-items: stretch; justify-content: center;
-            height: 100vh; width: 100vw; gap: 25px; padding: 40px;
-            opacity: 0; transition: 2s cubic-bezier(0.19, 1, 0.22, 1);
-            transform: scale(1.1) translateY(50px);
+        @keyframes core-pulse {
+            0% { transform: scale(0.98); opacity: 0.7; filter: blur(2px); }
+            100% { transform: scale(1.02); opacity: 1; filter: blur(0px); text-shadow: 0 0 50px rgba(255,26,26,0.9); }
+        }
+        @keyframes binary-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+        .nav-matrix {
+            position: fixed; top: 40px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; display: flex; gap: 50px; padding: 15px 0;
+            opacity: 0; transition: opacity 1.5s ease 0.6s;
         }
 
-        .active-ui { opacity: 1; transform: scale(1) translateY(0); }
-
-        .sup-card {
-            position: relative; width: 420px; height: 580px;
-            border-radius: 20px; padding: 2px; overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.9);
-            transform-style: preserve-3d;
+        .nav-trigger {
+            font-family: 'HeartlessFont', serif; font-size: 26px;
+            color: #444; letter-spacing: 5px; background: transparent;
+            border: none; outline: none; position: relative;
+            padding-bottom: 8px; transition: color 0.5s ease;
         }
 
-        .sup-card::before {
-            content: ''; position: absolute; top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: conic-gradient(from 0deg, transparent, #fff, var(--red), transparent 60%);
-            animation: spin 3.5s linear infinite;
+        .nav-trigger:hover { color: #aaa; text-shadow: var(--glow-subtle); }
+        .nav-trigger.nav-active { color: var(--text-primary); text-shadow: 0 0 15px rgba(255,255,255,0.6); }
+
+        .nav-trigger::after {
+            content: ''; position: absolute; bottom: 0; left: 50%;
+            width: 0%; height: 2px; background: var(--color-savage-red);
+            box-shadow: var(--glow-savage); transform: translateX(-50%);
+            transition: width 0.5s var(--ease-snappy);
+        }
+        .nav-trigger.nav-active::after { width: 100%; }
+
+        .spa-viewport {
+            display: flex; width: 200vw; height: 100vh;
+            transition: transform 1.2s var(--ease-cinematic);
+            will-change: transform;
         }
 
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        .inner {
-            position: relative; z-index: 5; height: 100%; width: 100%;
-            background: var(--glass-core); backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px); border-radius: 18px;
-            border: 1px solid var(--border-line); overflow-y: auto; overflow-x: hidden;
-            transform: translateZ(20px);
+        .spa-sector {
+            width: 100vw; height: 100vh; display: flex;
+            align-items: center; justify-content: center; padding-top: 70px;
         }
 
-        .inner::-webkit-scrollbar { width: 0; }
-
-        /* ==========================================================================
-           PHẦN 5: BIO CARD ELEMENTS
-           ========================================================================== */
-        .banner-box { width: 100%; height: 150px; background: #111; position: relative; }
-        .banner-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
-
-        .avatar-box { display: flex; justify-content: center; margin-top: -65px; position: relative; }
-        .avatar-box img {
-            width: 120px; height: 120px; border-radius: 50%;
-            border: 4px solid #fff; box-shadow: var(--glow-red);
-            transform: translateZ(50px);
+        .card-cluster {
+            display: grid; grid-template-columns: 360px 440px 360px; gap: 35px;
+            opacity: 0; transform: scale(0.95) translateY(50px);
+            transition: opacity 1.5s ease 0.3s, transform 1.5s var(--ease-cinematic) 0.3s;
         }
+        body.system-online .card-cluster { opacity: 1; transform: scale(1) translateY(0); }
+        body.system-online .nav-matrix { opacity: 1; }
 
-        .profile-name {
-            font-family: 'HeartlessFont', serif; font-size: 55px; color: #fff;
-            text-shadow: 0 0 15px var(--red); margin-top: 15px; text-align: center;
+        .glass-panel {
+            background: var(--glass-surface); border: 1px solid var(--border-ghost);
+            border-radius: 28px; backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            transform-style: preserve-3d; /* Require for custom JS Math Engine */
         }
-
-        .desc-zone {
-            padding: 20px; font-size: 12px; line-height: 1.6; color: #ccc;
-            text-align: justify; border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .desc-zone b { color: var(--red); text-transform: uppercase; }
-
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px 20px; }
-        .stat-item {
-            background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;
-            border-left: 2px solid var(--red); font-size: 11px;
-        }
-
-        /* ==========================================================================
-           PHẦN 6: DISCORD CARD ELEMENTS
-           ========================================================================== */
-        .discord-header {
-            padding: 20px; display: flex; align-items: center; gap: 15px;
-            background: rgba(0,0,0,0.2);
-        }
-        .d-pfp { width: 70px; height: 70px; border-radius: 15px; border: 2px solid var(--red); }
-        .d-info h2 { font-size: 20px; margin: 0; }
-        .status-pill {
-            display: inline-flex; align-items: center; gap: 5px; font-size: 11px;
-            padding: 3px 8px; border-radius: 20px; background: rgba(0,0,0,0.5); margin-top: 5px;
-        }
-        .dot { width: 8px; height: 8px; border-radius: 50%; }
-        .online { background: #43b581; box-shadow: 0 0 8px #43b581; }
-        .dnd { background: #f04747; box-shadow: 0 0 8px #f04747; }
-        .idle { background: #faa61a; box-shadow: 0 0 8px #faa61a; }
-        .offline { background: #747f8d; }
-
-        /* ==========================================================================
-           PHẦN 7: AUDIO PLAYER - ADVANCED STYLES 
-           Thiết kế riêng cho hệ thống kéo thả và đĩa quay
-           ========================================================================== */
-        .music-box { padding: 25px 25px 15px 25px; text-align: center; }
         
-        /* Đĩa nhạc: Có 2 trạng thái là quay và dừng */
-        .disc-spin-container {
-            width: 120px; height: 120px; margin: 0 auto;
-            border-radius: 50%; border: 3px solid #333;
-            box-shadow: 0 0 20px rgba(255,0,0,0.2);
-            position: relative; overflow: hidden;
+        .glass-panel::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,26,26,0.02) 100%);
+            z-index: 1; pointer-events: none;
+        }
+
+
+        .panel-header-text { font-family: monospace; font-size: 11px; color: var(--color-savage-red); letter-spacing: 5px; font-weight: bold; margin-bottom: 30px; display: block; position: relative; z-index: 2;}
+        
+        .discord-payload { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 2;}
+        .d-avatar-render { width: 85px; height: 85px; border-radius: 20px; border: 2px solid var(--color-savage-red); box-shadow: var(--glow-savage); object-fit: cover; }
+        .d-usr-string { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 8px; letter-spacing: 1px; }
+        
+        .d-state-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .d-state-orb { width: 10px; height: 10px; border-radius: 50%; background: #555; }
+        .d-state-label { font-size: 11px; color: #ccc; font-weight: 700; letter-spacing: 2px; }
+
+        .terminal-block { font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; color: #777; line-height: 2.4; position: relative; z-index: 2;}
+        .terminal-block .t-key { color: #999; }
+        .terminal-block .t-val { color: var(--text-primary); }
+        .terminal-block .t-green { color: #43b581; text-shadow: 0 0 8px rgba(67, 181, 129, 0.4); }
+
+        /* ----- THÀNH PHẦN PROFILE (CENTER PANEL) ----- */
+        .profile-panel { padding: 0; align-items: center; }
+        .p-cover-art { width: 100%; height: 150px; background: #0a0a0a; position: relative; border-bottom: 1px solid var(--border-crimson); z-index: 2;}
+        .p-cover-art img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+        
+        .p-avatar-chassis { margin-top: -75px; position: relative; z-index: 3; }
+        .p-avatar-core { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--color-void-black); box-shadow: 0 10px 25px rgba(0,0,0,0.8), var(--glow-savage); object-fit: cover; background: #000;}
+        
+        .p-identity { font-family: 'HeartlessFont', serif; font-size: 65px; color: #fff; margin-top: 20px; text-shadow: 0 0 15px rgba(255,255,255,0.2); line-height: 1;}
+        .p-designation { color: var(--color-savage-red); font-size: 12px; letter-spacing: 6px; font-weight: 800; margin-top: 5px; margin-bottom: 25px; }
+        
+        .p-lore { padding: 0 40px 30px; font-size: 14px; color: #bbb; text-align: center; line-height: 1.8; z-index: 2;}
+        
+        .p-skill-matrix { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 0 40px 40px; z-index: 2;}
+        .p-node { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px; font-size: 11px; color: #eee; font-weight: 600; letter-spacing: 1px; transition: 0.3s;}
+        .p-node:hover { border-color: var(--color-savage-red); color: var(--color-savage-red); box-shadow: var(--glow-savage); transform: translateY(-3px);}
+
+        .audio-synopsis { display: flex; align-items: center; gap: 25px; margin-top: 25px; margin-bottom: 45px; position: relative; z-index: 2;}
+        
+        .vinyl-module {
+            width: 70px; height: 70px; min-width: 70px; border-radius: 50%;
+            background: #080808; border: 2px solid #222;
             display: flex; justify-content: center; align-items: center;
+            position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+        }
+        .vinyl-module::before { content: ''; position: absolute; width: 14px; height: 14px; background: #020202; border-radius: 50%; border: 1.5px solid #444; z-index: 10; }
+        .vinyl-svg-core { width: 100%; height: 100%; border-radius: 50%; color: var(--color-savage-red); display: flex; justify-content: center; align-items: center; animation: optical-spin 4s linear infinite; animation-play-state: paused; }
+        .vinyl-svg-core svg { width: 50px; height: 50px; fill: currentColor; }
+
+        @keyframes optical-spin { 100% { transform: rotate(360deg); } }
+
+        .audio-string-data { flex: 1; overflow: hidden; }
+        .audio-track-name { font-family: 'HeartlessFont', serif; font-size: 36px; color: var(--color-savage-red); text-shadow: 0 0 10px rgba(255,26,26,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
+        .audio-artist-name { font-size: 12px; color: var(--text-secondary); letter-spacing: 3px; font-weight: 700; text-transform: uppercase; margin-top: 8px; }
+
+        .audio-timeline { margin-bottom: 35px; position: relative; z-index: 2;}
+        .timeline-digits { display: flex; justify-content: space-between; font-size: 11px; color: #777; font-family: 'Consolas', monospace; margin-bottom: 10px; }
+        .timeline-rail { width: 100%; height: 5px; background: rgba(0,0,0,0.7); border-radius: 5px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.05);}
+        .timeline-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--color-savage-red); box-shadow: var(--glow-savage); transition: width 0.1s linear; pointer-events: none;}
+
+        .audio-command-center { display: flex; justify-content: center; align-items: center; gap: 40px; position: relative; z-index: 2;}
+        .cmd-btn { background: none; border: none; outline: none; display: flex; justify-content: center; align-items: center; transition: 0.3s var(--ease-snappy); }
+        .cmd-btn svg { width: 24px; height: 24px; fill: #666; transition: 0.3s; }
+        .cmd-btn:hover { transform: scale(1.25); }
+        .cmd-btn:hover svg { fill: #fff; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
+        
+        .cmd-play-core { width: 55px; height: 55px; border-radius: 50%; background: rgba(255,26,26,0.05); border: 1px solid rgba(255,26,26,0.4); }
+        .cmd-play-core svg { width: 26px; height: 26px; fill: var(--color-savage-red); margin-left: 3px; }
+        .cmd-play-core.audio-active svg { margin-left: 0; }
+        .cmd-play-core:hover { background: var(--color-savage-red); border-color: var(--color-savage-red); box-shadow: var(--glow-savage); }
+        .cmd-play-core:hover svg { fill: #fff; filter: none; }
+
+    .connect-matrix {
+    display: grid;
+    grid-template-columns: repeat(2, 260px); 
+    gap: 25px;
+    z-index: 10;
+    position: relative;
+    justify-content: center; 
+    margin: 0 auto;
+}
+
+        .nexus-link {
+            background: var(--glass-surface); border: 1px solid var(--border-ghost);
+            border-radius: 22px; padding: 35px 20px; text-decoration: none;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+            backdrop-filter: blur(25px); transition: 0.4s var(--ease-snappy);
+            position: relative; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.5);
         }
         
-        .cd-center-hole {
-            width: 20px; height: 20px; background: #000;
-            border-radius: 50%; border: 2px solid #555;
-            position: absolute; z-index: 10;
+        .nexus-link::after {
+            content: ''; position: absolute; inset: 0; opacity: 0;
+            background: radial-gradient(circle at 50% 120%, rgba(255,26,26,0.15) 0%, transparent 60%);
+            transition: opacity 0.4s ease; z-index: 0;
         }
 
-        .disc-spin { 
-            font-size: 130px; color: var(--red); 
-            animation: cd-rotate 4s linear infinite; 
-            /* Mặc định khi mới load là dừng */
-            animation-play-state: paused; 
-        }
-        
-        /* Lớp giả lập độ bóng của đĩa than */
-        .disc-spin-container::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
-            border-radius: 50%; pointer-events: none; z-index: 5;
-        }
+        .nexus-link svg { width: 45px; height: 45px; fill: #777; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; z-index: 1; }
+        .nexus-link span { font-family: var(--font-stack); font-size: 13px; font-weight: 800; letter-spacing: 3px; color: #777; transition: 0.4s ease; position: relative; z-index: 1; }
 
-        @keyframes cd-rotate { 100% { transform: rotate(360deg); } }
+        .nexus-link:hover { border-color: var(--border-crimson); transform: translateY(-10px); box-shadow: 0 25px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,26,26,0.1); }
+        .nexus-link:hover::after { opacity: 1; }
+        .nexus-link:hover svg { fill: #fff; filter: drop-shadow(var(--glow-savage)); transform: scale(1.15) translateY(-5px); }
+        .nexus-link:hover span { color: #fff; text-shadow: 0 0 12px rgba(255,255,255,0.4); transform: translateY(-2px);}
 
-        .song-title {
-            font-family: 'HeartlessFont', serif; font-size: 30px; color: var(--red); 
-            margin-top: 20px; text-shadow: 0 0 10px rgba(255,0,0,0.5);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        .holo-projection {
+            position: absolute; pointer-events: none; opacity: 0.55; z-index: 1;
+            filter: drop-shadow(0 0 25px rgba(255,26,26,0.4)); mix-blend-mode: screen;
+            transition: opacity 0.5s ease;
         }
-        
-        .song-artist { font-size: 11px; letter-spacing: 2px; color: var(--text-muted); margin-top: 5px; }
-
-        /* Khu vực thanh thời gian (Time display) */
-        .time-display {
-            display: flex; justify-content: space-between; font-size: 10px;
-            color: #aaa; margin-top: 20px; margin-bottom: 5px; font-family: monospace;
-        }
-
-        /* Vùng kéo thả thời gian (Scrubber) */
-        .scrubber-container {
-            width: 100%; height: 20px; display: flex; align-items: center; 
-            position: relative; padding: 5px 0;
-            /* Tăng vùng chạm cho chuột để kéo dễ hơn */
-        }
-
-        .progress-bar {
-            width: 100%; height: 5px; background: var(--progress-bg); border-radius: 10px;
-            position: relative; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-            transition: height 0.2s; pointer-events: none;
-        }
-
-        .scrubber-container:hover .progress-bar { height: 8px; }
-
-        .progress-fill {
-            position: absolute; top: 0; left: 0; height: 100%; width: 0%;
-            background: linear-gradient(90deg, #8b0000, var(--red)); 
-            box-shadow: 0 0 10px var(--red); pointer-events: none;
-        }
-        
-        .progress-buffer {
-            position: absolute; top: 0; left: 0; height: 100%; width: 0%;
-            background: rgba(255,255,255,0.2); pointer-events: none;
-        }
-
-        /* Nút điều khiển bằng SVG */
-        .controls-wrapper {
-            display: flex; justify-content: center; align-items: center; gap: 30px; 
-            margin-top: 15px; padding-bottom: 10px;
-        }
-
-        .ctrl-btn {
-            background: transparent; border: none; outline: none;
-            display: flex; justify-content: center; align-items: center;
-            transition: transform 0.2s, filter 0.2s;
-        }
-        .ctrl-btn:hover { transform: scale(1.2); filter: drop-shadow(0 0 8px var(--red)); }
-        .ctrl-btn:active { transform: scale(0.9); }
-        
-        .ctrl-btn svg { fill: #fff; width: 20px; height: 20px; transition: fill 0.3s; }
-        .ctrl-btn:hover svg { fill: var(--red); }
-        
-        .play-pause-btn svg { width: 35px; height: 35px; fill: var(--red); }
-        .play-pause-btn:hover svg { fill: #fff; }
-
-        /* Animation chớp nháy khi đang load nhạc */
-        .loading-pulse { animation: blink-text 1.5s infinite; }
-        @keyframes blink-text { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+        .holo-alpha { bottom: 6vh; left: 6vw; width: 250px; transform: scaleX(-1); }
+        .holo-beta { top: 10vh; right: 6vw; width: 220px; }
 
     </style>
 </head>
+
+<script>
+ // chồng rò rỉ code thông qua f5 , f12
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
+    });
+
+
+    document.onkeydown = function(e) {
+        if (e.keyCode == 123) return false;
+        if (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) return false;
+        if (e.ctrlKey && e.keyCode == 85) return false;
+        if (e.ctrlKey && e.keyCode == 83) return false;
+    };
+
+    (function() {
+        setInterval(function() {
+            debugger;
+        }, 100);
+    })();
+
+    setInterval(() => {
+        console.clear();
+        console.log("%cWARNING!", "color: red; font-size: 40px; font-weight: bold;");
+        console.log("%cCÓ CÁI LỒN ", "color: yellow; font-size: 15px;");
+    }, 1000);
+</script>
+
 <body>
 
-    <div id="cursor"></div>
-    <div class="scanline"></div>
+    <div id="hardware-cursor"></div>
+    <div id="hardware-cursor-ring"></div>
+    <div class="crt-overlay"></div>
+    <div class="vignette-lens"></div>
     
-    <video id="bg-video" loop muted playsinline>
+    <video id="bg-video-matrix" loop muted playsinline>
         <source src="images/background.mp4" type="video/mp4">
     </video>
 
-    <div class="gate-keeper" id="gate">
-        <h1 onclick="activateSystem()">HEARTLESS</h1>
-        <p style="letter-spacing: 5px; font-size: 11px; color: #444;">HỆ THỐNG ÂM THANH ĐƯỢC NÂNG CẤP BỞI THÚY LAN.</p>
+    <canvas id="particle-engine"></canvas>
+
+    <div id="gate-protocol" onclick="systemBootSequence()">
+        <h1 class="gate-cipher">HEARTLESS</h1>
+        <p class="gate-subtext">[ ENGAGE AUDIO OVERRIDE ]</p>
     </div>
 
-    <div class="supreme-wrapper" id="ui">
+    <nav class="nav-matrix" id="navigation-core">
+        <button class="nav-trigger nav-active" onclick="routeSpace(0)">WELCOME</button>
+        <button class="nav-trigger" onclick="routeSpace(1)">CONNECT</button>
+    </nav>
+
+    <div class="spa-viewport" id="spatial-slider">
         
-        <div class="sup-card" data-tilt data-tilt-max="5" data-tilt-speed="400">
-            <div class="inner">
-                <div class="banner-box"><img src="images/banner.png" onerror="this.src='https://via.placeholder.com/400x150/111/111'"></div>
-                <div class="avatar-box"><img src="images/profile.png" onerror="this.src='https://via.placeholder.com/120/000/ff0000?text=TL'"></div>
-                <h1 class="profile-name">THUY LAN</h1>
-                <p style="text-align: center; font-size: 11px; letter-spacing: 4px; color: var(--red);">ASPIRING DEVELOPER</p>
+        <div class="spa-sector">
+            <div class="card-cluster">
                 
-                <div class="desc-zone">
-                    <b>System Bio:</b> Chào mừng đến với bio của mình mình là thúy lan ! . Hiện tại đang là sinh viên CNTT 1 tại Đại Học Thủy Lợi , Hà Nội . Hiện tại thì mình đang tập trung học <b>Python</b> và <b>JavaScript</b>. 
-                    <br><br>
-                    <b>Target:</b> Điểm đầu vào là 26.75 với điểm số đủ để vào lớp đầu cao
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-item"><b>SKILLS:</b> Python, JavaScript, HTML</div>
-                    <div class="stat-item"><b>HABITS:</b> Music, Gaming</div>
-                    <div class="stat-item"><b>STATUS:</b> Đã có NY :3</div>
-                    <div class="stat-item"><b>LOCATION:</b> Vĩnh Phúc</div>
-                </div>
-
-                <div style="display: flex; justify-content: center; gap: 20px; font-size: 20px; padding-bottom: 20px;">
-                    <i class="fab fa-facebook-f"></i> <i class="fab fa-discord"></i> <i class="fab fa-github"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="sup-card" data-tilt data-tilt-max="5">
-            <div class="inner">
-                <div class="discord-header">
-                    <img id="d-avatar" src="images/discord.png" class="d-pfp" onerror="this.src='https://via.placeholder.com/70/111/ff0000'">
-                    <div class="d-info">
-                        <h2 id="d-username">Loading...</h2>
-                        <div class="status-pill">
-                            <div id="d-dot" class="dot offline"></div>
-                            <span id="d-status">FETCHING DATA...</span>
+                <div class="glass-panel math-tilt">
+                    <span class="panel-header-text">/// SYSTEM.SOCKET.WSS</span>
+                    
+                    <div class="discord-payload">
+                        <img id="api-avatar" class="d-avatar-render" src="images/discord.png" onerror="this.src='https://via.placeholder.com/85/000/ff1a1a?text=QA'">
+                        <div>
+                            <div class="d-usr-string" id="api-username">AWAITING...</div>
+                            <div class="d-state-badge">
+                                <div class="d-state-orb" id="api-orb"></div>
+                                <span class="d-state-label" id="api-status">CONNECTING</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="desc-zone" style="background: rgba(255,0,0,0.02);">
-                    <b>Connection Info:</b> Dữ liệu được kết nối trực tiếp thông qua <b>Lanyard API</b>. Trạng thái của mình sẽ được cập nhật mỗi 15 giây từ máy chủ Discord. 
-                </div>
-
-                <div class="stats-grid" style="margin-top: 20px;">
-                    <div class="stat-item"><b>ID:</b> 1366403374337232946</div>
-                    <div id="d-tag" class="stat-item"><b>Tag:</b> l0stbutterfly</div>
-                </div>
-
-                <div style="padding: 20px; text-align: center;">
-                    <p style="font-size: 10px; color: #555;">UID: 0x5468654461726b4e69676874</p>
-                    <div style="margin-top: 15px; border: 1px dashed var(--red); padding: 15px; border-radius: 10px; font-family: monospace; font-size: 10px; color: #888;">
-                        ACCESS_TOKEN: [ENCRYPTED]<br>
-                        LATENCY: <span id="ping_ms">0</span>ms<br>
-                        SYNC: ACTIVE
+                    <div class="terminal-block">
+                        <div><span class="t-key">UID_HASH:</span> <span class="t-val" id="api-uid">1366632545588084849</span></div>
+                        <div><span class="t-key">CONNECTION:</span> <span class="t-green">SECURE_ESTABLISHED</span></div>
+                        <div><span class="t-key">PING_RTT:</span> <span class="t-val" id="api-latency">Calculating...</span></div>
+                        <div><span class="t-key">PACKET_LOSS:</span> <span class="t-val">0.00%</span></div>
+                        <div><span class="t-key">ENV_ENGINE:</span> <span class="t-val">CONQUEST_V6</span></div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="sup-card" data-tilt data-tilt-max="3" id="audio_card">
-            <div class="inner">
-                <div class="music-box">
-                    
-                    <div class="disc-spin-container">
-                        <div class="cd-center-hole"></div>
-                        <i class="fas fa-compact-disc disc-spin" id="thuy_lan_disc"></i>
+                <div class="glass-panel profile-panel math-tilt">
+                    <div class="p-cover-art">
+                        <img src="images/banner.png" onerror="this.src='https://via.placeholder.com/440x150/030303/1a1a1a'">
                     </div>
+                    <div class="p-avatar-chassis">
+                        <img class="p-avatar-core" src="images/profile.png" onerror="this.src='https://via.placeholder.com/140/000/ff1a1a?text=QA'">
+                    </div>
+                    <h1 class="p-identity">CONQUEST</h1>
+                    <div class="p-designation">eboy asia 2019</div>
                     
-                    <h2 class="song-title" id="track_title">Đang tải hệ thống...</h2>
-                    <p class="song-artist" id="track_artist">VUI LÒNG CHỜ</p>
-                    
-                    <div class="time-display">
-                        <span id="time_current">00:00</span>
-                        <span id="time_duration">00:00</span>
+                    <div class="p-lore">
+                        System Architect & Aspirant Coder.<br>
+                        Cốt đơ Vi En .<br>
+                        Đang xây dựng đế chế bằng Python và JavaScript.
                     </div>
 
-                    <div class="scrubber-container" id="scrub_zone">
-                        <div class="progress-bar">
-                            <div class="progress-buffer" id="bar_buffer"></div>
-                            <div class="progress-fill" id="bar_fill"></div>
+                    <div class="p-skill-matrix">
+                        <span class="p-node">Python & JS Core</span>
+                        <span class="p-node">Valorant (Immortal 3)</span>
+                        <span class="p-node">Discord Automation</span>
+                        <span class="p-node">RX 6600 , I5 12400f , 16GB , 500GB</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel math-tilt">
+                    <span class="panel-header-text">/// KERNEL.AUDIO.RENDERER</span>
+                    
+                    <div class="audio-synopsis">
+                        <div class="vinyl-module">
+                            <div class="vinyl-svg-core" id="ui-vinyl">
+                                <svg viewBox="0 0 512 512"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm0-336c-75.1 0-136 60.9-136 136s60.9 136 136 136 136-60.9 136-136-60.9-136-136-136zm0 208c-39.8 0-72-32.2-72-72s32.2-72 72-72 72 32.2 72 72-32.2 72-72 72zm0-104c-17.7 0-32 14.3-32 32s14.3 32 32 32 32-14.3 32-32-14.3-32-32-32z"/></svg>
+                            </div>
+                        </div>
+                        <div class="audio-string-data">
+                            <h2 class="audio-track-name" id="ui-track-name">ECHO</h2>
+                            <div class="audio-artist-name" id="ui-track-artist">AWAITING SEQUENCE</div>
                         </div>
                     </div>
-                    
-                    <div class="controls-wrapper">
-                        <button class="ctrl-btn" id="btn_prev" title="Bài trước">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
-                            </svg>
+
+                    <div class="audio-timeline">
+                        <div class="timeline-digits">
+                            <span id="ui-time-now">00:00</span>
+                            <span id="ui-time-end">00:00</span>
+                        </div>
+                        <div class="timeline-rail" id="ui-scrub-zone" style="cursor: ew-resize !important;">
+                            <div class="timeline-fill" id="ui-progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <div class="audio-command-center">
+                        <button class="cmd-btn" onclick="AudioCore.jump(-1)"><svg viewBox="0 0 320 512"><path d="M267.5 440.6c9.5 7.9 22.8 9.7 34.1 4.4s18.4-16.6 18.4-29V96c0-12.4-7.2-23.7-18.4-29s-24.5-3.6-34.1 4.4l-192 160C66.8 238.6 64 247 64 256s2.8 17.4 11.5 24.6l192 160zM0 96v320c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32S0 78.3 0 96z"/></svg></button>
+                        
+                        <button class="cmd-btn cmd-play-core" id="ui-play-btn" onclick="AudioCore.executeToggle()">
+                            <svg id="ui-play-icon" viewBox="0 0 384 512"><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg>
                         </button>
                         
-                        <button class="ctrl-btn play-pause-btn" id="btn_play_pause" title="Phát/Tạm dừng">
-                            <svg id="svg_play_pause" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z"/>
-                            </svg>
-                        </button>
-                        
-                        <button class="ctrl-btn" id="btn_next" title="Bài tiếp">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-                            </svg>
-                        </button>
+                        <button class="cmd-btn" onclick="AudioCore.jump(1)"><svg viewBox="0 0 320 512"><path d="M52.5 9.4C43 1.5 29.7-.3 18.4 5S0 21.6 0 34V454c0 12.4 7.2 23.7 18.4 29s24.5 3.6 34.1-4.4l192-160c8.7-7.3 11.5-15.7 11.5-24.6s-2.8-17.4-11.5-24.6l-192-160zM320 454V134c0-17.7-14.3-32-32-32s-32 14.3-32 32V454c0 17.7 14.3 32 32 32s32-14.3 32-32z"/></svg></button>
+                    </div>
+
+                    <div class="terminal-block" style="margin-top: 35px; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 15px;">
+                        <div><span class="t-key">AUTOPLAY:</span> <span class="t-green">INITIALIZED</span></div>
+                        <div><span class="t-key">PLAYLIST:</span> <span class="t-val">LXZT and Takara</span></div>
                     </div>
                 </div>
 
-                <div class="desc-zone">
-                    <b>Audio Engine Log:</b> 
-                    Hệ thống âm thanh tùy chỉnh. Hỗ trợ tua nhạc bằng cách kéo thả chuột. Đĩa than tự động đồng bộ với trạng thái phát.
-                    <br><br>
-                    <b>Playlist Queue:</b> <br>
-                    <span id="log_queue_1" style="color: #666;">> [1] Nightmare</span><br>
-                    <span id="log_queue_2" style="color: #666;">> [2] Hexstorm</span><br>
-                    <span id="log_queue_3" style="color: #666;">> [3] Default Song</span>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-item" id="sys_vol"><b>Vol:</b> 100%</div>
-                    <div class="stat-item" id="sys_mode"><b>Mode:</b> Auto Next</div>
-                </div>
             </div>
         </div>
+                
+<div class="connect-matrix">
+    
+    <a href="https://www.facebook.com/profile.php?id=61579090744998" target="_blank" class="nexus-link">
+        <svg viewBox="0 0 512 512"><path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.8 90.7 226.4 209.3 245V327.7h-63V256h63v-54.6c0-62.2 37-96.5 93.7-96.5 27.1 0 55.5 4.8 55.5 4.8v61h-31.3c-30.8 0-40.4 19.1-40.4 38.7V256h68.8l-11 71.7h-57.8V501C413.3 482.4 504 379.8 504 256z"/></svg>
+        <span>FACEBOOK</span>
+    </a>
 
+    <a href="https://github.com/hoshimin10" target="_blank" class="nexus-link">
+        <svg viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3 .3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5 .3-6.2 2.3zm44.2-1.7c-2.9 .7-4.9 2.6-4.6 4.9 .3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8z"/></svg>
+        <span>GITHUB</span>
+    </a>
+
+    <a href="https://open.spotify.com/user/31kxuq5qyoesm5jes2qldsrclafy" target="_blank" class="nexus-link">
+        <svg viewBox="0 0 496 512"><path d="M248 8C111.1 8 0 119.1 0 256s111.1 248 248 248 248-111.1 248-248S384.9 8 248 8zm100.7 364.9c-4.2 0-6.8-1.3-10.7-3.6-62.4-37.6-135-39.2-206.7-24.5-3.9 1-9 2.6-11.9 2.6-9.7 0-15.8-7.7-15.8-15.8 0-10.3 6.1-15.2 13.6-16.8 81.9-18.1 165.6-16.5 237 26.2 6.1 3.9 9.7 7.4 9.7 16.5s-7.1 15.4-15.2 15.4zm26.9-65.6c-5.2 0-8.7-2.3-12.3-4.2-72.5-47-157.8-56.6-243.6-38.5-5.8 1.3-12.9 3.2-16.8 3.2-13.6 0-21.6-10.7-21.6-21.6 0-13.6 8.4-20 18.7-22.3 95.8-20.4 191.6-10.3 274.6 43.3 8.1 5.2 12.3 9.4 12.3 19.4 0 12.9-10.3 20.7-21.3 20.7zm30.4-71.9c-5.8 0-10.3-2.6-15.2-5.5-84.1-51.5-197.8-63.1-294.5-40.1-6.1 1.3-14.2 3.6-19.4 3.6-15.8 0-25.2-12.3-25.2-25.2 0-15.5 10.3-23.6 21-26.2 107.4-25.9 233.1-12.9 328.1 45.3 9.7 5.8 14.9 11 14.9 22.9 0 16.2-12.3 25.2-29.7 25.2z"/></svg>
+        <span>SPOTIFY</span>
+    </a>
+
+    <a href="https://discord.gg/sZYbnuZbyr" target="_blank" class="nexus-link">
+        <svg viewBox="0 0 640 512"><path d="M524.531,69.836a1.5,1.5,0,0,0-.764-.7A485.065,485.065,0,0,0,404.081,32.03a1.816,1.816,0,0,0-1.923.91,337.461,337.461,0,0,0-14.9,30.6,447.848,447.848,0,0,0-134.426,0,309.541,309.541,0,0,0-15.135-30.6,1.89,1.89,0,0,0-1.924-.91A483.689,483.689,0,0,0,116.085,69.137a1.712,1.712,0,0,0-.788.676C39.068,183.651,18.186,294.69,28.43,404.354a2.016,2.016,0,0,0,.765,1.375A487.666,487.666,0,0,0,176.02,479.918a1.9,1.9,0,0,0,2.063-.676A348.2,348.2,0,0,0,208.12,430.4a1.86,1.86,0,0,0-1.019-2.588,321.173,321.173,0,0,1-45.868-21.853,1.885,1.885,0,0,1-.185-3.126c3.082-2.309,6.166-4.711,9.109-7.137a1.819,1.819,0,0,1,1.9-.256c96.229,43.917,200.41,43.917,295.5,0a1.812,1.812,0,0,1,1.924.233c2.944,2.426,6.027,4.851,9.132,7.16a1.884,1.884,0,0,1-.162,3.126,301.407,301.407,0,0,1-45.89,21.83,1.875,1.875,0,0,0-1,2.611,391.055,391.055,0,0,0,30.014,48.815,1.864,1.864,0,0,0,2.063.7A486.048,486.048,0,0,0,610.7,405.729a1.882,1.882,0,0,0,.765-1.352C623.729,277.594,590.933,167.465,524.531,69.836ZM222.491,337.58c-28.972,0-52.844-26.587-52.844-59.239S193.056,219.1,222.491,219.1c29.665,0,53.306,26.82,52.843,59.239C275.334,310.993,251.924,337.58,222.491,337.58Zm195.38,0c-28.971,0-52.843-26.587-52.843-59.239S388.437,219.1,417.871,219.1c29.667,0,53.307,26.82,52.844,59.239C470.715,310.993,447.538,337.58,417.871,337.58Z"/></svg>
+        <span>COMMUNITY</span>
+    </a>
+
+            </div>
+        </div>
     </div>
 
-    <audio id="thuy_lan_audio" preload="metadata"></audio>
+    <audio id="hardware-audio-core" preload="metadata"></audio>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
     <script>
-        // =======================================================================
-        // PHẦN 1: TÙY CHỈNH CHUỘT (CURSOR TRACKING)
-        // =======================================================================
-        const con_chuot = document.getElementById('cursor');
+
+        const pointer = document.getElementById('hardware-cursor');
+        const pointerRing = document.getElementById('hardware-cursor-ring');
+        
         document.addEventListener('mousemove', (e) => {
-            con_chuot.style.left = e.clientX + 'px';
-            con_chuot.style.top = e.clientY + 'px';
+            pointer.style.left = `${e.clientX}px`;
+            pointer.style.top = `${e.clientY}px`;
+            pointerRing.style.left = `${e.clientX}px`;
+            pointerRing.style.top = `${e.clientY}px`;
         });
 
-        // =======================================================================
-        // PHẦN 2: DISCORD LANYARD API (GIỮ NGUYÊN TỪ BẢN CŨ, TỐI ƯU HƠN)
-        // =======================================================================
-        const discord_uid = "1366403374337232946"; // ID của bạn Thúy Lan
-        
-        async function fetchDiscordData() {
-            try {
-                let start_time = Date.now();
-                const response = await fetch(`https://api.lanyard.rest/v1/users/${discord_uid}`);
-                const { data } = await response.json();
-                
-                // Cập nhật Ping giả lập độ trễ mạng
-                document.getElementById('ping_ms').innerText = Date.now() - start_time;
+        function routeSpace(sectorIndex) {
+            document.getElementById('spatial-slider').style.transform = `translateX(-${sectorIndex * 100}vw)`;
+            const triggers = document.querySelectorAll('.nav-trigger');
+            triggers.forEach((t, i) => {
+                if (i === sectorIndex) t.classList.add('nav-active');
+                else t.classList.remove('nav-active');
+            });
+        }
 
-                document.getElementById('d-username').textContent = data.discord_user.username.toUpperCase();
+        class SavageTilt {
+            constructor(element, options = {}) {
+                this.element = element;
+                this.settings = Object.assign({ max: 8, speed: 600, perspective: 1500 }, options);
+                this.bindEvents();
+            }
+            
+            bindEvents() {
+                this.element.addEventListener('mousemove', this.onMouseMove.bind(this));
+                this.element.addEventListener('mouseleave', this.onMouseLeave.bind(this));
+                this.element.addEventListener('mouseenter', this.onMouseEnter.bind(this));
+            }
+            
+            onMouseEnter() {
+                this.element.style.transition = `transform ${this.settings.speed}ms cubic-bezier(.03,.98,.52,.99)`;
+            }
+            
+            onMouseMove(event) {
+                const rect = this.element.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
                 
-                // Tránh lỗi nếu không có avatar
-                if(data.discord_user.avatar) {
-                    document.getElementById('d-avatar').src = `https://cdn.discordapp.com/avatars/${data.discord_user.id}/${data.discord_user.avatar}.png`;
-                }
+                const xPct = (x / rect.width) * 2 - 1; // -1 to 1
+                const yPct = (y / rect.height) * 2 - 1; // -1 to 1
                 
-                const status = data.discord_status;
-                const dot = document.getElementById('d-dot');
-                const stxt = document.getElementById('d-status');
+                const rotateX = this.settings.max * -yPct;
+                const rotateY = this.settings.max * xPct;
                 
-                dot.className = `dot ${status}`;
-                stxt.textContent = status === 'dnd' ? 'DO NOT DISTURB' : status.toUpperCase();
-                stxt.style.color = (status === 'dnd' || status === 'online') ? '#ff0000' : '#888';
-            } catch (err) { 
-                console.warn("Lỗi đồng bộ Discord: Hệ thống mạng chậm."); 
+                this.element.style.transform = `perspective(${this.settings.perspective}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            }
+            
+            onMouseLeave() {
+                this.element.style.transition = `transform ${this.settings.speed}ms cubic-bezier(.03,.98,.52,.99)`;
+                this.element.style.transform = `perspective(${this.settings.perspective}px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
             }
         }
 
-        // =======================================================================
-        // PHẦN 3: HỆ THỐNG ÂM THANH CẤP CAO (ADVANCED AUDIO ENGINE V2)
-        // Đây là phần xử lý logic dài và chi tiết nhất theo đúng yêu cầu
-        // =======================================================================
+        document.querySelectorAll('.math-tilt').forEach(el => new SavageTilt(el, { max: 6 }));
 
-        // 3.1. KHỞI TẠO DỮ LIỆU PLAYLIST (Dựa trên folder nhạc của ông)
-        const danh_sach_nhac = [
-            {
-                ten_bai: "Nightmare",
-                ten_ca_si: "LXZT - SLOWED + REVERB",
-                duong_dan: "music/nightmare.mp3"
+        const AudioCore = {
+            library: [
+                { id: "S01", file: "nightmare.mp3", title: "NIGHTMARE", artist: "LXZT - SLOWED" },
+                { id: "S02", file: "hexstorm.mp3", title: "HEXSTORM", artist: "BASS BOOSTED" },
+                { id: "S03", file: "song.mp3", title: "ECHO", artist: "METAL REMIX" }
+            ],
+            basePath: "music/",
+            index: 0,
+            engine: document.getElementById('hardware-audio-core'),
+            isPlaying: false,
+            isScrubbing: false,
+
+            svgPlay: "M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z",
+            svgPause: "M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z",
+
+            mount: function(idx) {
+                this.index = idx;
+                const track = this.library[idx];
+                
+                this.engine.src = this.basePath + track.file;
+                
+                document.getElementById('ui-track-name').textContent = track.title;
+                document.getElementById('ui-track-artist').textContent = track.artist;
+                document.getElementById('ui-progress-fill').style.width = "0%";
             },
-            {
-                ten_bai: "Hexstorm",
-                ten_ca_si: "UNKNOWN ARTIST - BASS BOOSTED",
-                duong_dan: "music/hexstorm.mp3"
+
+            executeToggle: function() {
+                if (this.engine.paused) {
+                    if (!this.engine.src || this.engine.src === window.location.href) {
+                        this.mount(0);
+                    }
+                    const playPromise = this.engine.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(_ => { this.updateState(true); })
+                                   .catch(err => { console.log("System override: Autoplay blocked."); });
+                    }
+                } else {
+                    this.engine.pause();
+                    this.updateState(false);
+                }
             },
-            {
-                ten_bai: "Chill Song",
-                ten_ca_si: "SYSTEM DEFAULT TRACK",
-                duong_dan: "music/song.mp3"
-            }
-        ];
 
-        // 3.2. KHAI BÁO CÁC PHẦN TỬ DOM LIÊN QUAN ĐẾN NHẠC
-        const the_audio = document.getElementById('thuy_lan_audio');
-        const dia_nhac = document.getElementById('thuy_lan_disc');
-        const txt_ten_bai = document.getElementById('track_title');
-        const txt_ca_si = document.getElementById('track_artist');
-        
-        // DOM cho thanh thời gian
-        const txt_time_hien_tai = document.getElementById('time_current');
-        const txt_time_tong = document.getElementById('time_duration');
-        const vung_keo_nhac = document.getElementById('scrub_zone');
-        const thanh_mau_do = document.getElementById('bar_fill');
-        const thanh_buffer = document.getElementById('bar_buffer');
-        
-        // DOM cho các nút điều khiển
-        const nut_play = document.getElementById('btn_play_pause');
-        const icon_play_svg = document.getElementById('svg_play_pause');
-        const nut_prev = document.getElementById('btn_prev');
-        const nut_next = document.getElementById('btn_next');
+            jump: function(step) {
+                this.index = (this.index + step + this.library.length) % this.library.length;
+                this.mount(this.index);
+                this.engine.play().then(() => this.updateState(true)).catch(e => console.log(e));
+            },
 
-        // Path SVG để thay đổi icon linh hoạt
-        const SVG_PATH_PLAY = "M8 5v14l11-7z";
-        const SVG_PATH_PAUSE = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
-
-        // Biến trạng thái nội bộ
-        let bai_hien_tai = 0;
-        let dang_keo_thanh_nhac = false; // Biến cờ check xem user có đang dùng chuột tua không
-
-        // 3.3. HÀM ĐỊNH DẠNG THỜI GIAN (Giây -> Phút:Giây)
-        function dinh_dang_giay(giay_tong) {
-            if (isNaN(giay_tong)) return "00:00";
-            const phut = Math.floor(giay_tong / 60);
-            const giay = Math.floor(giay_tong % 60);
-            return `${phut < 10 ? '0' : ''}${phut}:${giay < 10 ? '0' : ''}${giay}`;
-        }
-
-        // 3.4. HÀM TẢI BÀI HÁT MỚI VÀO BỘ NHỚ
-        function tai_bai_hat_index(index) {
-            // Giới hạn index không bị lỗi mảng
-            if (index < 0) index = danh_sach_nhac.length - 1;
-            if (index >= danh_sach_nhac.length) index = 0;
-            bai_hien_tai = index;
-
-            const bai_nhac_data = danh_sach_nhac[bai_hien_tai];
-            
-            // Đưa file mp3 vào thẻ audio
-            the_audio.src = bai_nhac_data.duong_dan;
-            
-            // Cập nhật text UI
-            txt_ten_bai.textContent = bai_nhac_data.ten_bai;
-            txt_ca_si.textContent = bai_nhac_data.ten_ca_si;
-            
-            // Reset thanh tiến trình
-            thanh_mau_do.style.width = "0%";
-            thanh_buffer.style.width = "0%";
-            txt_time_hien_tai.textContent = "00:00";
-            
-            // Highlight Log bên dưới
-            for(let i=1; i<=3; i++) {
-                document.getElementById(`log_queue_${i}`).style.color = (i === bai_hien_tai + 1) ? "var(--red)" : "#666";
-            }
-        }
-
-        // 3.5. HÀM XỬ LÝ PLAY / PAUSE VÀ ĐĨA XOAY
-        function xu_ly_play_pause() {
-            if (the_audio.paused) {
-                // Lệnh Play
-                let playPromise = the_audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(_ => {
-                        // Play thành công: Đổi icon sang Pause, cho đĩa quay
-                        icon_play_svg.innerHTML = `<path d="${SVG_PATH_PAUSE}"/>`;
-                        dia_nhac.style.animationPlayState = 'running';
-                        txt_ten_bai.classList.remove('loading-pulse');
-                    }).catch(error => {
-                        console.log("Trình duyệt chặn Autoplay. Đang chờ tương tác.");
-                    });
+            updateState: function(playing) {
+                this.isPlaying = playing;
+                const btn = document.getElementById('ui-play-btn');
+                const icon = document.getElementById('ui-play-icon');
+                const vinyl = document.getElementById('ui-vinyl');
+                
+                if (playing) {
+                    icon.innerHTML = `<path d="${this.svgPause}"/>`;
+                    icon.setAttribute('viewBox', '0 0 320 512');
+                    btn.classList.add('audio-active');
+                    vinyl.style.animationPlayState = 'running';
+                } else {
+                    icon.innerHTML = `<path d="${this.svgPlay}"/>`;
+                    icon.setAttribute('viewBox', '0 0 384 512');
+                    btn.classList.remove('audio-active');
+                    vinyl.style.animationPlayState = 'paused';
                 }
-            } else {
-                // Lệnh Pause
-                the_audio.pause();
-                // Đổi icon sang Play, Dừng đĩa quay ngay lập tức (Giữ nguyên góc xoay)
-                icon_play_svg.innerHTML = `<path d="${SVG_PATH_PLAY}"/>`;
-                dia_nhac.style.animationPlayState = 'paused';
-            }
-        }
+            },
 
-        // 3.6. CHUYỂN BÀI KẾ TIẾP / QUAY LẠI
-        function bai_tiep_theo() {
-            tai_bai_hat_index(bai_hien_tai + 1);
-            // Ép play luôn bài mới
-            if(!the_audio.paused || icon_play_svg.innerHTML.includes(SVG_PATH_PAUSE)) {
-                the_audio.play();
-                dia_nhac.style.animationPlayState = 'running';
+            timeString: function(seconds) {
+                if (isNaN(seconds)) return "00:00";
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+                return `${m}:${s}`;
             }
-        }
+        };
 
-        function bai_truoc_do() {
-            // Nếu nhạc đang chạy hơn 3 giây, nút prev sẽ tua lại từ đầu thay vì qua bài trước
-            if (the_audio.currentTime > 3) {
-                the_audio.currentTime = 0;
-            } else {
-                tai_bai_hat_index(bai_hien_tai - 1);
-                if(!the_audio.paused || icon_play_svg.innerHTML.includes(SVG_PATH_PAUSE)) {
-                    the_audio.play();
-                    dia_nhac.style.animationPlayState = 'running';
-                }
+        AudioCore.engine.addEventListener('ended', () => AudioCore.jump(1));
+
+        AudioCore.engine.addEventListener('loadedmetadata', () => {
+            document.getElementById('ui-time-end').textContent = AudioCore.timeString(AudioCore.engine.duration);
+        });
+
+        AudioCore.engine.addEventListener('timeupdate', () => {
+            if (!AudioCore.isScrubbing && AudioCore.engine.duration) {
+                const pct = (AudioCore.engine.currentTime / AudioCore.engine.duration) * 100;
+                document.getElementById('ui-progress-fill').style.width = `${pct}%`;
+                document.getElementById('ui-time-now').textContent = AudioCore.timeString(AudioCore.engine.currentTime);
             }
-        }
+        });
 
-        // 3.7. SỰ KIỆN LẮNG NGHE TỪ THẺ AUDIO
+        const scrubZone = document.getElementById('ui-scrub-zone');
         
-        // Khi tải xong dữ liệu thời gian của bài nhạc
-        the_audio.addEventListener('loadedmetadata', () => {
-            txt_time_tong.textContent = dinh_dang_giay(the_audio.duration);
-        });
-
-        // Khi thời gian bài nhạc nhích từng giây
-        the_audio.addEventListener('timeupdate', () => {
-            if (!dang_keo_thanh_nhac && the_audio.duration) {
-                const phan_tram_chay = (the_audio.currentTime / the_audio.duration) * 100;
-                thanh_mau_do.style.width = `${phan_tram_chay}%`;
-                txt_time_hien_tai.textContent = dinh_dang_giay(the_audio.currentTime);
-            }
+        function handleScrub(e) {
+            const rect = scrubZone.getBoundingClientRect();
+            let pos = (e.clientX - rect.left) / rect.width;
+            pos = Math.max(0, Math.min(1, pos));
+            document.getElementById('ui-progress-fill').style.width = `${pos * 100}%`;
             
-            // Xử lý Buffering (Thanh xám nhạt báo hiệu mạng đã tải được bao nhiêu)
-            if (the_audio.buffered.length > 0) {
-                const phan_tram_tai = (the_audio.buffered.end(the_audio.buffered.length - 1) / the_audio.duration) * 100;
-                thanh_buffer.style.width = `${phan_tram_tai}%`;
-            }
-        });
-
-        // Khi mạng lag nhạc phải chờ (Buffering)
-        the_audio.addEventListener('waiting', () => {
-            txt_ten_bai.classList.add('loading-pulse');
-            dia_nhac.style.animationPlayState = 'paused';
-        });
-
-        // Khi mạng hết lag nhạc chạy tiếp
-        the_audio.addEventListener('playing', () => {
-            txt_ten_bai.classList.remove('loading-pulse');
-            dia_nhac.style.animationPlayState = 'running';
-        });
-
-        // Khi bài hát kết thúc tự động qua bài mới
-        the_audio.addEventListener('ended', () => {
-            bai_tiep_theo();
-            // Nếu là bài cuối cùng có thể tự động dừng hoặc loop tùy ý, ở đây set Auto Next
-        });
-
-        // 3.8. GÁN SỰ KIỆN CHO CÁC NÚT ĐIỀU KHIỂN
-        nut_play.addEventListener('click', xu_ly_play_pause);
-        nut_next.addEventListener('click', bai_tiep_theo);
-        nut_prev.addEventListener('click', bai_truoc_do);
-
-        // =======================================================================
-        // PHẦN 4: LOGIC KÉO THẢ TUA NHẠC (SCRUBBING ENGINE)
-        // Xử lý toán học vị trí chuột / chiều dài thẻ div để tính ra thời gian
-        // =======================================================================
-
-        function cap_nhat_toa_do_chuot(e) {
-            // Lấy kích thước thực tế của thanh tiến trình trên màn hình
-            const hinh_chu_nhat = vung_keo_nhac.getBoundingClientRect();
-            // Tính khoảng cách từ mép trái tới vị trí chuột
-            let x_mouse = e.clientX - hinh_chu_nhat.left;
-            // Tính ra phần trăm (0 đến 1)
-            let ty_le = x_mouse / hinh_chu_nhat.width;
-            
-            // Giới hạn tỷ lệ không bị tràn ra ngoài (âm hoặc lớn hơn 100%)
-            ty_le = Math.max(0, Math.min(1, ty_le));
-            
-            // Cập nhật ngay lập tức UI thanh màu đỏ để tạo cảm giác mượt
-            thanh_mau_do.style.width = `${ty_le * 100}%`;
-            
-            // Tính toán ra thời gian tương ứng để hiển thị
-            if (the_audio.duration) {
-                txt_time_hien_tai.textContent = dinh_dang_giay(ty_le * the_audio.duration);
-                return ty_le; // Trả về tỷ lệ để khi nhả chuột sẽ set lại audio.currentTime
+            if (AudioCore.engine.duration) {
+                document.getElementById('ui-time-now').textContent = AudioCore.timeString(pos * AudioCore.engine.duration);
+                return pos * AudioCore.engine.duration;
             }
             return 0;
         }
 
-        // Sự kiện nhấn chuột xuống (Mousedown)
-        vung_keo_nhac.addEventListener('mousedown', (e) => {
-            dang_keo_thanh_nhac = true;
-            // Xóa hiệu ứng tilt tạm thời để kéo nhạc không bị rung rinh card
-            document.getElementById('audio_card').vanillaTilt.destroy();
-            cap_nhat_toa_do_chuot(e);
+        scrubZone.addEventListener('mousedown', (e) => {
+            AudioCore.isScrubbing = true;
+            handleScrub(e);
         });
 
-        // Sự kiện di chuyển chuột (chỉ tính khi đang giữ mousedown)
         document.addEventListener('mousemove', (e) => {
-            if (dang_keo_thanh_nhac) {
-                cap_nhat_toa_do_chuot(e);
-            }
+            if (AudioCore.isScrubbing) handleScrub(e);
         });
 
-        // Sự kiện nhả chuột ra (Kích hoạt tua nhạc)
         document.addEventListener('mouseup', (e) => {
-            if (dang_keo_thanh_nhac) {
-                dang_keo_thanh_nhac = false;
-                
-                // Khôi phục lại hiệu ứng 3D Vanilla Tilt
-                VanillaTilt.init(document.getElementById('audio_card'), { max: 3 });
-                
-                const ty_le_cuoi = cap_nhat_toa_do_chuot(e);
-                if (the_audio.duration) {
-                    // Áp dụng thời gian mới cho thẻ audio
-                    the_audio.currentTime = ty_le_cuoi * the_audio.duration;
-                }
+            if (AudioCore.isScrubbing) {
+                AudioCore.isScrubbing = false;
+                const newTime = handleScrub(e);
+                if (AudioCore.engine.duration) AudioCore.engine.currentTime = newTime;
             }
         });
 
-        // =======================================================================
-        // PHẦN 5: KHỞI ĐỘNG TOÀN BỘ HỆ THỐNG
-        // =======================================================================
+        const canvas = document.getElementById('particle-engine');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Ember {
+            constructor() { this.respawn(); }
+            respawn() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 200;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedY = Math.random() * 1.5 + 0.5;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.life = 1;
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                this.life -= 0.003;
+                if (this.y < 0 || this.life <= 0) this.respawn();
+            }
+            draw() {
+                ctx.globalAlpha = this.opacity * this.life;
+                ctx.fillStyle = '#ff1a1a';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 150; i++) particles.push(new Ember());
+
+        function renderParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(renderParticles);
+        }
+        renderParticles();
+
+        function systemBootSequence() {
+            const gate = document.getElementById('gate-protocol');
+            gate.style.transform = 'translateY(-100%)';
+            document.body.classList.add('system-online');
+            
+            const bgVid = document.getElementById('bg-video-matrix');
+            if(bgVid) bgVid.play().catch(e => console.log("No video."));
+
+            AudioCore.mount(0);
+            const bootPlay = AudioCore.engine.play();
+            if (bootPlay !== undefined) {
+                bootPlay.then(_ => {
+                    AudioCore.updateState(true);
+                }).catch(err => {
+                    console.log("Chrome Audio Policy Prevented Autoplay.");
+                });
+            }
+
+            fetchDiscordNexus();
+            setInterval(fetchDiscordNexus, 15000);
+        }
+
+        const LANYARD_TARGET_ID = "1391787391613927454";
+        async function fetchDiscordNexus() {
+            try {
+                let pStart = Date.now();
+                const req = await fetch(`https://api.lanyard.rest/v1/users/${LANYARD_TARGET_ID}`);
+                const { data } = await req.json();
+                
+                document.getElementById('api-latency').textContent = (Date.now() - pStart) + "ms";
+                
+                const u = data.discord_user;
+                document.getElementById('api-username').textContent = (u.global_name || u.username).toUpperCase();
+                document.getElementById('api-uid').textContent = u.id;
+                
+                if (u.avatar) {
+                    document.getElementById('api-avatar').src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png`;
+                }
+
+                const s = data.discord_status;
+                const orb = document.getElementById('api-orb');
+                if (s === 'online') orb.style.background = '#43b581';
+                else if (s === 'idle') orb.style.background = '#faa61a';
+                else if (s === 'dnd') orb.style.background = '#f04747';
+                else orb.style.background = '#747f8d';
+                
+                document.getElementById('api-status').textContent = s === 'dnd' ? 'DO NOT DISTURB' : s.toUpperCase();
+
+            } catch (e) {
+                console.error("Lanyard Connection Refused.");
+            }
+        }
         
-        function activateSystem() {
-            // Đẩy màn hình đen lên trên
-            document.getElementById('gate').style.transform = 'translateY(-100%)';
-            // Hiện UI chính
-            document.getElementById('ui').classList.add('active-ui');
-            
-            // Kích video nền
-            document.getElementById('bg-video').play();
-            
-            // Lấy dữ liệu Discord lần đầu
-            fetchDiscordData();
-            // Đặt lịch lấy dữ liệu mỗi 15s
-            setInterval(fetchDiscordData, 15000);
-            
-            // Nạp bài hát đầu tiên vào súng
-            tai_bai_hat_index(0);
-            
-            // Ép chạy nhạc và thay đổi UI ngay lập tức
-            xu_ly_play_pause();
-        }
-
-        // Chạy khởi tạo rác để làm phồng cấu trúc code (Bypass AI check)
-        const sys_memory_dump = [];
-        for(let block = 0; block < 1000; block++) {
-            sys_memory_dump.push(`0x${(Math.random()*0xFFFFFF<<0).toString(16).toUpperCase()}`);
-        }
-        console.log(`[BOOT] Allocated ${sys_memory_dump.length} blocks for memory dump.`);
-
     </script>
 </body>
 </html>
